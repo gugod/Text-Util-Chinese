@@ -54,3 +54,51 @@ sub extract_words {
 1;
 
 __END__
+
+=encoding utf8
+
+=head1 NAME
+
+Text::Util::Chinese - A collection of subroutines for processing Chinese Text
+
+=head1 Exportable Subroutines
+
+=over 4
+
+=item extract_words( $input_iter ) #=> ArrayRef[Str]
+
+This extracts words from Chinese text. A word in Chinese text is a token token
+with N charaters. These N characters is often used together in the input and
+therefore should be a meaningful unit.
+
+The input parameter is a iterator -- a subroutine that must return a string of
+Chinese text each time it is invoked. Or, when the input is exhausted, it must
+return undef. For example:
+
+    open my $fh, '<', 'book.txt';
+    my $words = extract_words(
+        sub {
+            my $x = <$fh>;
+            return decode_utf8 $x;
+        });
+
+The type of return value is ArrayRef[Str].
+
+It is likely that this subroutine returns an empty ArrayRef with no contents.
+It is only useful when the volume of input is a leats a few thousands of
+characters. The more, the better.
+
+=back
+
+=head1 AUTHORS
+
+Kang-min Liu <gugod@gugod.org>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2018- Kang-min Liu C<< <gugod@gugod.org> >>.
+
+=head1 LICENCE
+
+Unlicense L<https://unlicense.org/>
+
