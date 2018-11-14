@@ -69,7 +69,7 @@ Text::Util::Chinese - A collection of subroutines for processing Chinese Text
 
 =item extract_words( $input_iter ) #=> ArrayRef[Str]
 
-This extracts words from Chinese text. A word in Chinese text is a token token
+This extracts words from Chinese text. A word in Chinese text is a token
 with N charaters. These N characters is often used together in the input and
 therefore should be a meaningful unit.
 
