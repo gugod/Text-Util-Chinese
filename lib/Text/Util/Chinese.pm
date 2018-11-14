@@ -1,11 +1,13 @@
 package Text::Util::Chinese;
 use strict;
 use warnings;
-use List::Util qw(uniq);
 
-use Exporter 'import';
+use Exporter 5.57 'import';
 
+our $VERSION = '0.01';
 our @EXPORT_OK = qw(extract_words);
+
+use List::Util qw(uniq);
 
 sub extract_words {
     my ($input_iter) = @_;
@@ -94,11 +96,6 @@ characters. The more, the better.
 
 Kang-min Liu <gugod@gugod.org>
 
-=head1 COPYRIGHT
-
-Copyright (c) 2018- Kang-min Liu C<< <gugod@gugod.org> >>.
-
 =head1 LICENCE
 
 Unlicense L<https://unlicense.org/>
-

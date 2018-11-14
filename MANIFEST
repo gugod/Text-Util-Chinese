@@ -1,0 +1,11 @@
+Build.PL
+LICENSE
+MANIFEST
+META.json
+META.yml
+README
+README.md
+cpanfile
+examples/extract-words.pl
+lib/Text/Util/Chinese.pm
+metamerge.json
