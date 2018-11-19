@@ -26,7 +26,10 @@ sub extract_words {
                     $lcontext{$c[$i]}{$c[$i-1]}++;
                     for my $n (2,3) {
                         if ($i >= $n) {
-                            $lcontext{ join('', @c[ ($i-$n+1) .. $i] ) }{$c[$i - $n]}++;
+                            my $tok = join('', @c[ ($i-$n+1) .. $i] );
+                            if (length($tok) > 1) {
+                                $lcontext{ $tok }{$c[$i - $n]}++;
+                            }
                         }
                     }
                 }
@@ -34,7 +37,10 @@ sub extract_words {
                     $rcontext{$c[$i]}{$c[$i+1]}++;
                     for my $n (2,3) {
                         if ($i + $n <= $#c) {
-                            $rcontext{ join('', @c[$i .. ($i+$n-1)]) }{ $c[$i+$n] }++;
+                            my $tok = join('', @c[$i .. ($i+$n-1)]);
+                            if (length($tok) > 1) {
+                                $rcontext{ $tok }{ $c[$i+$n] }++;
+                            }
                         }
                     }
                 }
@@ -42,10 +48,10 @@ sub extract_words {
         }
     }
 
+    my @tokens = uniq((keys %lcontext), (keys %rcontext));
     my @words;
     my $threshold = 5;
-    for my $x (uniq((keys %lcontext), (keys %rcontext))) {
-        next unless length($x) > 1;
+    for my $x (@tokens) {
         next unless ($threshold <= (keys %{$lcontext{$x}}) && $threshold <= (keys %{$rcontext{$x}}));
         push @words, $x;
     }
