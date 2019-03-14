@@ -19,11 +19,11 @@ sub extract_presuf {
 
     while (defined($text = $input_iter->())) {
         for my $phrase (split /\p{General_Category: Other_Punctuation}+/, $text) {
-            next unless length($phrase) > 2 && $phrase =~ /\A\p{Han}+\z/x;
+            next unless length($phrase) >= 2 && $phrase =~ /\A\p{Han}+\z/x;
 
             for my $len (2..5) {
                 my $re = '\p{Han}{' . $len . '}';
-                next unless length($phrase) > $len * 2 && $phrase =~ /\A($re) .+ ($re)\z/x;
+                next unless length($phrase) >= $len * 2 && $phrase =~ /\A($re) .* ($re)\z/x;
                 my ($prefix, $suffix) = ($1, $2);
                 $stats{prefix}{$prefix}++ unless $extracted{$prefix};
                 $stats{suffix}{$suffix}++ unless $extracted{$suffix};
