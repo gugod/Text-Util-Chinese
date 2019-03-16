@@ -105,11 +105,11 @@ __END__
 
 =encoding utf8
 
-=head1 Name
+=head1 NAME
 
 Text::Util::Chinese - A collection of subroutines for processing Chinese Text
 
-=head1 Descriptions
+=head1 DESCRIPTIONS
 
 The subroutines provided by this module are for processing Chinese text.
 Conventionally, all input strings are assumed to be wide-characters.  No
@@ -138,7 +138,7 @@ trivial example to open a file as an input iterator:
 
 This C<$input_iter> can be then passed as arguments to different subroutines.
 
-=head1 Exported Subroutines
+=head1 EXPORTED SUBROUTINES
 
 =over 4
 
