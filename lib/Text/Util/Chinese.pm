@@ -4,7 +4,7 @@ use warnings;
 
 use Exporter 5.57 'import';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our @EXPORT_OK = qw(extract_presuf extract_words);
 
 use List::Util qw(uniq);
