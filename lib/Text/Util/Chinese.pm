@@ -9,6 +9,16 @@ our @EXPORT_OK = qw(phrase_iterator extract_presuf extract_words);
 
 use List::Util qw(uniq);
 
+sub grep_iterator(&$) {
+    my ($cb, $iter) = @_;
+    return sub {
+        local $_ = $iter->();
+        return undef unless defined($_);
+        $cb->();
+        return $_;
+    }
+}
+
 sub phrase_iterator {
     my ($input_iter, $opts) = @_;
     my @phrases;
@@ -30,10 +40,8 @@ sub extract_presuf {
     my $threshold = $opts->{threshold} || 9; # an arbitrary choice.
     my $text;
 
-    my $phrase_iter = phrase_iterator( $input_iter );
+    my $phrase_iter = grep_iterator sub { /\A\p{Han}+\z/ }, phrase_iterator( $input_iter );
     while (my $phrase = $phrase_iter->()) {
-        next unless length($phrase) >= 2 && $phrase =~ /\A\p{Han}+\z/x;
-
         for my $len (2..5) {
             my $re = '\p{Han}{' . $len . '}';
             next unless length($phrase) >= $len * 2 && $phrase =~ /\A($re) .* ($re)\z/x;
