@@ -30,34 +30,34 @@ sub extract_presuf {
     my $threshold = $opts->{threshold} || 9; # an arbitrary choice.
     my $text;
 
-    while (defined($text = $input_iter->())) {
-        for my $phrase (split /\p{General_Category: Other_Punctuation}+/, $text) {
-            next unless length($phrase) >= 2 && $phrase =~ /\A\p{Han}+\z/x;
+    my $phrase_iter = phrase_iterator( $input_iter );
+    while (my $phrase = $phrase_iter->()) {
+        next unless length($phrase) >= 2 && $phrase =~ /\A\p{Han}+\z/x;
 
-            for my $len (2..5) {
-                my $re = '\p{Han}{' . $len . '}';
-                next unless length($phrase) >= $len * 2 && $phrase =~ /\A($re) .* ($re)\z/x;
-                my ($prefix, $suffix) = ($1, $2);
-                $stats{prefix}{$prefix}++ unless $extracted{$prefix};
-                $stats{suffix}{$suffix}++ unless $extracted{$suffix};
+        for my $len (2..5) {
+            my $re = '\p{Han}{' . $len . '}';
+            next unless length($phrase) >= $len * 2 && $phrase =~ /\A($re) .* ($re)\z/x;
+            my ($prefix, $suffix) = ($1, $2);
+            $stats{prefix}{$prefix}++ unless $extracted{$prefix};
+            $stats{suffix}{$suffix}++ unless $extracted{$suffix};
 
-                for my $x ($prefix, $suffix) {
-                    if (! $extracted{$x}
-                        && $stats{prefix}{$x}
-                        && $stats{suffix}{$x}
-                        && $stats{prefix}{$x} > $threshold
-                        && $stats{suffix}{$x} > $threshold
-                    ) {
-                        $extracted{$x} = 1;
-                        delete $stats{prefix}{$x};
-                        delete $stats{suffix}{$x};
+            for my $x ($prefix, $suffix) {
+                if (! $extracted{$x}
+                    && $stats{prefix}{$x}
+                    && $stats{suffix}{$x}
+                    && $stats{prefix}{$x} > $threshold
+                    && $stats{suffix}{$x} > $threshold
+                ) {
+                    $extracted{$x} = 1;
+                    delete $stats{prefix}{$x};
+                    delete $stats{suffix}{$x};
 
-                        $output_cb->($x, \%extracted);
-                    }
+                    $output_cb->($x, \%extracted);
                 }
             }
         }
     }
+
 
     return \%extracted;
 }
