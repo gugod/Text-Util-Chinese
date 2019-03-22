@@ -5,9 +5,20 @@ use warnings;
 use Exporter 5.57 'import';
 
 our $VERSION = '0.03';
-our @EXPORT_OK = qw(extract_presuf extract_words);
+our @EXPORT_OK = qw(phrase_iterator extract_presuf extract_words);
 
 use List::Util qw(uniq);
+
+sub phrase_iterator {
+    my ($input_iter, $opts) = @_;
+    my @phrases;
+    return sub {
+        while(! @phrases && defined(my $text = $input_iter->())) {
+            @phrases = grep { /\A\p{Han}{3,}\z/ } grep { ! /\A\s+\z/ } grep { ! /\p{General_Category=Punctuation}/ } split /\p{General_Category: Other_Punctuation}+/, $text;
+        }
+        return shift @phrases;
+    }
+}
 
 sub extract_presuf {
     my ($input_iter, $output_cb, $opts) = @_;
