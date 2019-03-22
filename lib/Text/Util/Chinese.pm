@@ -15,9 +15,7 @@ sub phrase_iterator {
     return sub {
         while(! @phrases && defined(my $text = $input_iter->())) {
             @phrases = grep {
-                /\A\p{Han}{5,}\z/
-            } grep {
-                (! /\A\s+\z/) && (! /\p{General_Category=Punctuation}/)
+                (! /\A\s+\z/) && (! /\p{General_Category=Punctuation}/) && /\p{Han}/
             } split / ( \r?\n | \p{General_Category: Other_Punctuation} )+ /x, $text;
         }
         return shift @phrases;
