@@ -9,9 +9,8 @@ open my $fh, '<:utf8', "$Bin/data/rand0m.txt";
 
 my $iter = phrase_iterator(
     sub {
-        my $line = <$fh>;
-        return unless defined($line);
-        chomp($line);
+        return if eof($fh);
+        chomp(my $line = <$fh>);
         return $line;
     }
 );
