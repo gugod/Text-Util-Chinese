@@ -207,6 +207,11 @@ of this subroutine.
 The 3rd argument is a HashRef with parameters to the internal algorithm. So
 far C<threshold> is the only one with default value being 9.
 
+=item phrase_iterator( $input_iter ) #=> CodeRef
+
+This subroutine split input into smallelr phrases. It takes an text iterator,
+and returns another one.
+
 =back
 
 =head1 AUTHORS
