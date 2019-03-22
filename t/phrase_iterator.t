@@ -7,13 +7,7 @@ use Test2::V0;
 
 open my $fh, '<:utf8', "$Bin/data/rand0m.txt";
 
-my $iter = phrase_iterator(
-    sub {
-        return if eof($fh);
-        chomp(my $line = <$fh>);
-        return $line;
-    }
-);
+my $iter = phrase_iterator(sub { <$fh> });
 
 my $phrases = 0;
 while (my $phrase = $iter->()) {
