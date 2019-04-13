@@ -38,11 +38,15 @@ sub extract_presuf {
     my %stats;
     my %extracted;
     my $threshold = $opts->{threshold} || 9; # an arbitrary choice.
+    my $lengths   = $opts->{lengths} || [2,3];
     my $text;
 
-    my $phrase_iter = grep_iterator sub { /\A\p{Han}+\z/ }, phrase_iterator( $input_iter );
+    my $phrase_iter = grep_iterator(
+        phrase_iterator( $input_iter ),
+        sub { /\A\p{Han}+\z/ }
+    );
     while (my $phrase = $phrase_iter->()) {
-        for my $len (2..5) {
+        for my $len ( @$lengths ) {
             my $re = '\p{Han}{' . $len . '}';
             next unless length($phrase) >= $len * 2 && $phrase =~ /\A($re) .* ($re)\z/x;
             my ($prefix, $suffix) = ($1, $2);
@@ -201,7 +205,10 @@ It is used like this:
 
             ...
         },
-        { threshold => 9 }
+        +{
+            threshold => 9,
+            lengths => [ 2,3 ],
+        }
     );
 
 The C<$output_cb> callback is passed two arguments. The first one is the new
@@ -210,8 +217,11 @@ suffix. The second arguments is a HashRef with keys being the set of all
 extracted tokens. The very same HashRef is also going to be the return value
 of this subroutine.
 
-The 3rd argument is a HashRef with parameters to the internal algorithm. So
-far C<threshold> is the only one with default value being 9.
+The 3rd argument is a HashRef with parameters to the internal algorithm.
+C<threshold> should be an Int, C<lengths> should be an ArrayRef[Int] and
+that constraints the lengths of prefixes and suffixes to be extracted.
+
+The default value for C<threshold> is 9, while the default value for C<lengths> is C<[2,3]>
 
 =item phrase_iterator( $input_iter ) #=> CodeRef
 
