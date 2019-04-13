@@ -9,12 +9,14 @@ our @EXPORT_OK = qw(phrase_iterator extract_presuf extract_words);
 
 use List::Util qw(uniq);
 
-sub grep_iterator(&$) {
-    my ($cb, $iter) = @_;
+sub grep_iterator {
+    my ($iter, $cb) = @_;
     return sub {
-        local $_ = $iter->();
-        return undef unless defined($_);
-        $cb->();
+        local $_;
+        do {
+            $_ = $iter->();
+            return undef unless defined($_);
+        } while (! $cb->());
         return $_;
     }
 }
