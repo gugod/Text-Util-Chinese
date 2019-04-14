@@ -3,9 +3,10 @@ use strict;
 use warnings;
 
 use Exporter 5.57 'import';
+use Unicode::UCD qw(charscript);
 
 our $VERSION = '0.04';
-our @EXPORT_OK = qw(phrase_iterator extract_presuf extract_words);
+our @EXPORT_OK = qw(phrase_iterator extract_presuf extract_words tokenize_by_script);
 
 use List::Util qw(uniq);
 
@@ -126,6 +127,29 @@ sub extract_words {
     return \@words;
 }
 
+sub tokenize_by_script {
+    my ($str) = @_;
+    my @tokens;
+    my @chars = grep { defined($_) } split "", $str;
+    return () unless @chars;
+
+    my $t = shift(@chars);
+    my $s = charscript(ord($t));
+    while(my $char = shift @chars) {
+        my $_s = charscript(ord($char));
+        if ($_s eq $s) {
+            $t .= $char;
+        }
+        else {
+            push @tokens, $t;
+            $s = $_s;
+            $t = $char;
+        }
+    }
+    push @tokens, $t;
+    return grep { ! /\A\s*\z/u } @tokens;
+}
+
 1;
 
 __END__
@@ -229,6 +253,10 @@ The default value for C<threshold> is 9, while the default value for C<lengths> 
 
 This subroutine split input into smallelr phrases. It takes an text iterator,
 and returns another one.
+
+=item tokenize_by_script( $text ) #=> Array[ Str ]
+
+This subroutine split text into tokens, where each token is the same writing script.
 
 =back
 
