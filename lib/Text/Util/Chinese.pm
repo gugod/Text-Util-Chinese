@@ -1,14 +1,15 @@
 package Text::Util::Chinese;
 use strict;
 use warnings;
+use utf8;
 
 use Exporter 5.57 'import';
 use Unicode::UCD qw(charscript);
 
 our $VERSION = '0.05';
-our @EXPORT_OK = qw(phrase_iterator extract_presuf extract_words tokenize_by_script);
+our @EXPORT_OK = qw(sentence_iterator phrase_iterator extract_presuf extract_words tokenize_by_script);
 
-use List::Util qw(uniq);
+use List::Util qw(uniq pairmap);
 
 sub grep_iterator {
     my ($iter, $cb) = @_;
@@ -33,6 +34,23 @@ sub phrase_iterator {
         }
         return shift @phrases;
     }
+}
+
+sub sentence_iterator {
+    my ($input_iter, $opts) = @_;
+    my @sentences;
+    return sub {
+        while(! @sentences && defined(my $text = $input_iter->())) {
+            my @o = split /([\n\?\!。？！]+)/, $text;
+            if (@o) {
+                if (@o % 2 == 1) {
+                    push @o, "";
+                }
+                @sentences = pairmap { $a . $b } @o;
+            }
+        }
+        return shift @sentences;
+    }    
 }
 
 sub extract_presuf {
