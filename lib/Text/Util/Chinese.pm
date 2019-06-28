@@ -6,7 +6,7 @@ use utf8;
 use Exporter 5.57 'import';
 use Unicode::UCD qw(charscript);
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 our @EXPORT_OK = qw(sentence_iterator phrase_iterator extract_presuf extract_words tokenize_by_script);
 
 use List::Util qw(uniq pairmap);
