@@ -41,13 +41,14 @@ sub sentence_iterator {
     my @sentences;
     return sub {
         while(! @sentences && defined(my $text = $input_iter->())) {
-            my @o = split /([\n\?\!。？！]+)/, $text;
-            if (@o) {
-                if (@o % 2 == 1) {
-                    push @o, "";
-                }
-                @sentences = pairmap { $a . $b } @o;
-            }
+            @sentences = grep { !/\A\s+\z/ } ($text =~
+                          m/(
+                               (?:
+                                   [^\p{General_Category: Open_Punctuation}\p{General_Category: Close_Punctuation}]+?
+                               | .*? \p{General_Category: Open_Punctuation} .*? \p{General_Category: Close_Punctuation} .*?
+                               )
+                               (?: \z | [\n\?\!。？！]+ )
+                           )/gx);
         }
         return shift @sentences;
     }    
