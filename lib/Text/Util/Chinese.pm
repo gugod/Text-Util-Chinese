@@ -268,7 +268,7 @@ that constraints the lengths of prefixes and suffixes to be extracted.
 
 The default value for C<threshold> is 9, while the default value for C<lengths> is C<[2,3]>
 
-=item sentences_iterator( $input_iter ) #=> CodeRef
+=item sentence_iterator( $input_iter ) #=> CodeRef
 
 This subroutine split input into sentences. It takes an text iterator,
 and returns another one.
