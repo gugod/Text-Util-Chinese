@@ -7,7 +7,7 @@ use Exporter 5.57 'import';
 use Unicode::UCD qw(charscript);
 
 our $VERSION = '0.06';
-our @EXPORT_OK = qw(sentence_iterator phrase_iterator extract_presuf extract_words tokenize_by_script);
+our @EXPORT_OK = qw(sentence_iterator phrase_iterator presuf_iterator extract_presuf extract_words tokenize_by_script);
 
 use List::Util qw(uniq pairmap);
 
@@ -54,44 +54,66 @@ sub sentence_iterator {
     }    
 }
 
-sub extract_presuf {
-    my ($input_iter, $output_cb, $opts) = @_;
+sub presuf_iterator {
+    my ($input_iter, $opts) = @_;
 
     my %stats;
-    my %extracted;
     my $threshold = $opts->{threshold} || 9; # an arbitrary choice.
     my $lengths   = $opts->{lengths} || [2,3];
-    my $text;
 
     my $phrase_iter = grep_iterator(
         phrase_iterator( $input_iter ),
         sub { /\A\p{Han}+\z/ }
     );
-    while (my $phrase = $phrase_iter->()) {
-        for my $len ( @$lengths ) {
-            my $re = '\p{Han}{' . $len . '}';
-            next unless length($phrase) >= $len * 2 && $phrase =~ /\A($re) .* ($re)\z/x;
-            my ($prefix, $suffix) = ($1, $2);
-            $stats{prefix}{$prefix}++ unless $extracted{$prefix};
-            $stats{suffix}{$suffix}++ unless $extracted{$suffix};
 
-            for my $x ($prefix, $suffix) {
-                if (! $extracted{$x}
-                    && $stats{prefix}{$x}
-                    && $stats{suffix}{$x}
-                    && $stats{prefix}{$x} > $threshold
-                    && $stats{suffix}{$x} > $threshold
-                ) {
-                    $extracted{$x} = 1;
-                    delete $stats{prefix}{$x};
-                    delete $stats{suffix}{$x};
+    my (%extracted, @extracted);
+    return sub {
+        if (@extracted) {
+            return shift @extracted;
+        }
 
-                    $output_cb->($x, \%extracted);
+        while (!@extracted && defined(my $phrase = $phrase_iter->())) {
+            for my $len ( @$lengths ) {
+                my $re = '\p{Han}{' . $len . '}';
+                next unless length($phrase) >= $len * 2 && $phrase =~ /\A($re) .* ($re)\z/x;
+                my ($prefix, $suffix) = ($1, $2);
+                $stats{prefix}{$prefix}++ unless $extracted{$prefix};
+                $stats{suffix}{$suffix}++ unless $extracted{$suffix};
+
+                for my $x ($prefix, $suffix) {
+                    if (! $extracted{$x}
+                        && $stats{prefix}{$x}
+                        && $stats{suffix}{$x}
+                        && $stats{prefix}{$x} > $threshold
+                        && $stats{suffix}{$x} > $threshold
+                    ) {
+                        $extracted{$x} = 1;
+                        delete $stats{prefix}{$x};
+                        delete $stats{suffix}{$x};
+
+                        push @extracted, $x;
+                    }
                 }
             }
         }
-    }
 
+        if (@extracted) {
+            return shift @extracted;
+        }
+
+        return undef;
+    };
+}
+
+sub extract_presuf {
+    my ($input_iter, $output_cb, $opts) = @_;
+
+    my $iter = presuf_iterator($input_iter, $opts);
+
+    my %extracted;
+    while (defined(my $x = $iter->())) {
+        $extracted{$x} = 1;
+    }
 
     return \%extracted;
 }
