@@ -7,7 +7,7 @@ use Exporter 5.57 'import';
 use Unicode::UCD qw(charscript);
 
 our $VERSION = '0.06';
-our @EXPORT_OK = qw(sentence_iterator phrase_iterator presuf_iterator extract_presuf extract_words tokenize_by_script);
+our @EXPORT_OK = qw(sentence_iterator phrase_iterator presuf_iterator word_iterator extract_presuf extract_words tokenize_by_script);
 
 use List::Util qw(uniq pairmap);
 
@@ -123,33 +123,33 @@ sub extract_words {
 
     my (%lcontext, %rcontext);
 
-    while( my $txt = $input_iter->() ) {
-        my @phrase = split /\P{Letter}/, $txt;
-        for (@phrase) {
-            next unless /\A\p{Han}+\z/;
+    my $phrase_iter = grep_iterator(
+        phrase_iterator( $input_iter ),
+        sub { /\A\p{Han}+\z/ }
+    );
 
-            my @c = split("", $_);
+    while(defined( my $txt = $phrase_iter->() )) {
+        my @c = split("", $txt);
 
-            for my $i (0..$#c) {
-                if ($i > 0) {
-                    $lcontext{$c[$i]}{$c[$i-1]}++;
-                    for my $n (2,3) {
-                        if ($i >= $n) {
-                            my $tok = join('', @c[ ($i-$n+1) .. $i] );
-                            if (length($tok) > 1) {
-                                $lcontext{ $tok }{$c[$i - $n]}++;
-                            }
+        for my $i (0..$#c) {
+            if ($i > 0) {
+                $lcontext{$c[$i]}{$c[$i-1]}++;
+                for my $n (2,3) {
+                    if ($i >= $n) {
+                        my $tok = join('', @c[ ($i-$n+1) .. $i] );
+                        if (length($tok) > 1) {
+                            $lcontext{ $tok }{$c[$i - $n]}++;
                         }
                     }
                 }
-                if ($i < $#c) {
-                    $rcontext{$c[$i]}{$c[$i+1]}++;
-                    for my $n (2,3) {
-                        if ($i + $n <= $#c) {
-                            my $tok = join('', @c[$i .. ($i+$n-1)]);
-                            if (length($tok) > 1) {
-                                $rcontext{ $tok }{ $c[$i+$n] }++;
-                            }
+            }
+            if ($i < $#c) {
+                $rcontext{$c[$i]}{$c[$i+1]}++;
+                for my $n (2,3) {
+                    if ($i + $n <= $#c) {
+                        my $tok = join('', @c[$i .. ($i+$n-1)]);
+                        if (length($tok) > 1) {
+                            $rcontext{ $tok }{ $c[$i+$n] }++;
                         }
                     }
                 }
