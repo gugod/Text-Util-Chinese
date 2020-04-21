@@ -135,54 +135,70 @@ sub extract_presuf {
     return \%extracted;
 }
 
-sub extract_words {
+sub word_iterator {
     my ($input_iter) = @_;
 
-    my (%lcontext, %rcontext);
+    my $threshold = 5;
+    my (%lcontext, %rcontext, %word, @words);
 
     my $phrase_iter = grep_iterator(
         phrase_iterator( $input_iter ),
         sub { /\A\p{Han}+\z/ }
     );
 
-    while(defined( my $txt = $phrase_iter->() )) {
-        my @c = split("", $txt);
+    return sub {
+        if (@words) {
+            return shift @words;
+        }
 
-        for my $i (0..$#c) {
-            if ($i > 0) {
-                $lcontext{$c[$i]}{$c[$i-1]}++;
-                for my $n (2,3) {
-                    if ($i >= $n) {
-                        my $tok = join('', @c[ ($i-$n+1) .. $i] );
-                        if (length($tok) > 1) {
-                            $lcontext{ $tok }{$c[$i - $n]}++;
+        while (!@words && defined( my $txt = $phrase_iter->() )) {
+            my @c = split("", $txt);
+
+            for my $i (0..$#c) {
+                if ($i > 0) {
+                    $lcontext{$c[$i]}{$c[$i-1]}++;
+                    for my $n (2,3) {
+                        if ($i >= $n) {
+                            my $tok = join('', @c[ ($i-$n+1) .. $i] );
+                            unless ($word{$tok}) {
+                                if (length($tok) > 1) {
+                                    $lcontext{ $tok }{$c[$i - $n]}++;
+                                }
+
+                                if ($threshold <= (keys %{$lcontext{$tok}}) && $threshold <= (keys %{$rcontext{$tok}})) {
+                                    $word{$tok} = 1;
+                                    push @words, $tok;
+                                }
+                            }
                         }
                     }
                 }
-            }
-            if ($i < $#c) {
-                $rcontext{$c[$i]}{$c[$i+1]}++;
-                for my $n (2,3) {
-                    if ($i + $n <= $#c) {
-                        my $tok = join('', @c[$i .. ($i+$n-1)]);
-                        if (length($tok) > 1) {
-                            $rcontext{ $tok }{ $c[$i+$n] }++;
+                if ($i < $#c) {
+                    $rcontext{$c[$i]}{$c[$i+1]}++;
+                    for my $n (2,3) {
+                        if ($i + $n <= $#c) {
+                            my $tok = join('', @c[$i .. ($i+$n-1)]);
+                            unless ($word{$tok}) {
+                                if (length($tok) > 1) {
+                                    $rcontext{ $tok }{ $c[$i+$n] }++;
+                                }
+
+                                if ($threshold <= (keys %{$lcontext{$tok}}) && $threshold <= (keys %{$rcontext{$tok}})) {
+                                    $word{$tok} = 1;
+                                    push @words, $tok;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+        return shift @words;
     }
+}
 
-    my @tokens = uniq((keys %lcontext), (keys %rcontext));
-    my @words;
-    my $threshold = 5;
-    for my $x (@tokens) {
-        next unless ($threshold <= (keys %{$lcontext{$x}}) && $threshold <= (keys %{$rcontext{$x}}));
-        push @words, $x;
-    }
-
-    return \@words;
+sub extract_words {
+    return [ exhaust(word_iterator(@_)) ];
 }
 
 sub tokenize_by_script {
