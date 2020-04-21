@@ -11,6 +11,16 @@ our @EXPORT_OK = qw(sentence_iterator phrase_iterator presuf_iterator word_itera
 
 use List::Util qw(uniq pairmap);
 
+sub exhaust {
+    my ($iter, $cb) = @_;
+    my @list;
+    while(defined(my $x = $iter->())) {
+        push @list, $x;
+        $cb->($x) if defined($cb);
+    }
+    return @list;
+}
+
 sub grep_iterator {
     my ($iter, $cb) = @_;
     return sub {
