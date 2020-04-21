@@ -9,8 +9,6 @@ use Unicode::UCD qw(charscript);
 our $VERSION = '0.07';
 our @EXPORT_OK = qw(sentence_iterator phrase_iterator presuf_iterator word_iterator extract_presuf extract_words tokenize_by_script);
 
-use List::Util qw(uniq pairmap);
-
 sub exhaust {
     my ($iter, $cb) = @_;
     my @list;
