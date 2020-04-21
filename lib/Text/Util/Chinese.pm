@@ -121,9 +121,16 @@ sub extract_presuf {
     my $iter = presuf_iterator($input_iter, $opts);
 
     my %extracted;
-    while (defined(my $x = $iter->())) {
-        $extracted{$x} = 1;
-    }
+
+    exhaust(
+        $iter,
+        sub {
+            my $it = $_[0];
+            $extracted{$it} = 1;
+
+            $output_cb->($it, \%extracted);
+        }
+    );
 
     return \%extracted;
 }
