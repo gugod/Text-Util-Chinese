@@ -51,7 +51,7 @@ sub sentence_iterator {
                            )/gx);
         }
         return shift @sentences;
-    }    
+    }
 }
 
 sub presuf_iterator {
