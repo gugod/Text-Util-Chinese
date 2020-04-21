@@ -19,11 +19,10 @@ subtest 'extract_presuf' => sub {
     my @copy = @input;
     my $extracted = extract_presuf(
         sub { shift @copy },
-        sub { },
         { threshold => 2 },
     );
 
-    is $extracted, { '禁煙' => 1 };
+    is $extracted, ['禁煙'];
 };
 
 subtest 'presuf_iterator' => sub {

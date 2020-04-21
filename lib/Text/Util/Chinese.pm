@@ -116,23 +116,8 @@ sub presuf_iterator {
 }
 
 sub extract_presuf {
-    my ($input_iter, $output_cb, $opts) = @_;
-
-    my $iter = presuf_iterator($input_iter, $opts);
-
-    my %extracted;
-
-    exhaust(
-        $iter,
-        sub {
-            my $it = $_[0];
-            $extracted{$it} = 1;
-
-            $output_cb->($it, \%extracted);
-        }
-    );
-
-    return \%extracted;
+    my ($input_iter, $opts) = @_;
+    return [ exhaust(presuf_iterator($input_iter, $opts)) ];
 }
 
 sub word_iterator {
@@ -258,16 +243,19 @@ trivial example to open a file as an input iterator:
             return decode_utf8($line);
         }
     }
-    
+
     my $input_iter = open_as_iterator("/data/corpus.txt");
 
 This C<$input_iter> can be then passed as arguments to different subroutines.
+
+Although in the rest of this document, `Iter` is used as a Type
+notation for iterators. It is the same as a CODE reference.
 
 =head1 EXPORTED SUBROUTINES
 
 =over 4
 
-=item extract_words( $input_iter ) #=> ArrayRef[Str]
+=item word_iterator( $input_iter ) #=> Iter
 
 This extracts words from Chinese text. A word in Chinese text is a token
 with N charaters. These N characters is often used together in the input and
@@ -276,6 +264,21 @@ therefore should be a meaningful unit.
 The input parameter is a iterator -- a subroutine that must return a string of
 Chinese text each time it is invoked. Or, when the input is exhausted, it must
 return undef. For example:
+
+    open my $fh, '<', 'book.txt';
+    my $word_iter = word_iterator(
+        sub {
+            my $x = <$fh>;
+            return decode_utf8 $x;
+        });
+
+The type of return value is Iter (CODE ref).
+
+=item extract_words( $input_iter ) #=> ArrayRef[Str]
+
+This does the same thing as C<word_iterator>, but retruns the exhausted list instead of iterator.
+
+For example:
 
     open my $fh, '<', 'book.txt';
     my $words = extract_words(
@@ -290,45 +293,28 @@ It is likely that this subroutine returns an empty ArrayRef with no contents.
 It is only useful when the volume of input is a leats a few thousands of
 characters. The more, the better.
 
-=item extract_presuf( $input_iter, $output_cb, $opts ) #=> HashRef
+=item presuf_iterator( $input_iter, $opts) #=> Iter
 
 This subroutine extract meaningful tokens that are prefix or suffix of
-input. Comparing to C<extract_word>, it yields extracted tokens frequently
-by calling C<$output_cb>.
+input.
 
-It is used like this:
-
-    my $extracted = extract_presuf(
-        \&next_input,
-        sub {
-            my ($token, $extracted) = @_;
-
-            ...
-        },
-        +{
-            threshold => 9,
-            lengths => [ 2,3 ],
-        }
-    );
-
-The C<$output_cb> callback is passed two arguments. The first one is the new
-C<$token> that appears more then C<$threshold> times as a prefix and as a
-suffix. The second arguments is a HashRef with keys being the set of all
-extracted tokens. The very same HashRef is also going to be the return value
-of this subroutine.
-
-The 3rd argument is a HashRef with parameters to the internal algorithm.
-C<threshold> should be an Int, C<lengths> should be an ArrayRef[Int] and
-that constraints the lengths of prefixes and suffixes to be extracted.
+The 2nd argument C<$opts> is a HashRef with parameters C<threshold>
+and C<lengths>. C<threshold> should be an Int, C<lengths> should be an
+ArrayRef[Int] and that constraints the lengths of prefixes and
+suffixes to be extracted.
 
 The default value for C<threshold> is 9, while the default value for C<lengths> is C<[2,3]>
 
-=item sentence_iterator( $input_iter ) #=> CodeRef
+=item extract_presuf( $input_iter, $opts ) #=> ArrayRef[Str]
+
+Similar to C<presuf_iterator>, but returns a ArrayRef[Str] instead.
+
+=item sentence_iterator( $input_iter ) #=> Iter
 
 This subroutine split input into sentences. It takes an text iterator,
 and returns another one.
 
-=item phrase_iterator( $input_iter ) #=> CodeRef
+=item phrase_iterator( $input_iter ) #=> Iter
 
 This subroutine split input into smallelr phrases. It takes an text iterator,
 and returns another one.
