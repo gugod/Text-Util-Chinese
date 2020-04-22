@@ -323,10 +323,10 @@ This subroutine split text into tokens, where each token is the same writing scr
 
 =back
 
-=head1 AUTHORS
+=head1 AUTHOR
 
 Kang-min Liu <gugod@gugod.org>
 
-=head1 LICENCE
+=head1 LICENSE
 
 Unlicense L<https://unlicense.org/>
